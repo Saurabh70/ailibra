@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ailibra
 
-## Getting Started
+AI-native CRM for B2B sales teams. Talk to it; it captures, prioritises, drafts, and prepares so you can focus on selling.
 
-First, run the development server:
+## Stack
+Next.js 14 (App Router) · TypeScript · Tailwind · shadcn/ui · Framer Motion · Supabase · Anthropic Claude · googleapis · Resend · Apollo.
+
+## Run locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+cp .env.example .env.local   # fill in REQUIRED keys
+pnpm seed                    # populates demo data into your Supabase
+pnpm dev                     # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The dev script (`scripts/dev.mjs`) loads `.env.local` with `override: true`, so values in the file beat anything in your shell environment.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Required environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Var | Purpose |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` | Database |
+| `ANTHROPIC_API_KEY` | Every AI feature |
+| `MASTER_PASSWORD` | Basic-auth gate on deployed app (skipped on localhost) |
+| `SEED_TOKEN` | Token check on `POST /api/seed` (skip if unset) |
+| `NEXT_PUBLIC_APP_URL` | Used to build OAuth redirect URLs |
 
-## Learn More
+## Optional integrations (Demo Mode if absent)
 
-To learn more about Next.js, take a look at the following resources:
+Each of these has a Demo Mode toggle in Settings — when the real key isn't configured, the integration runs end-to-end against the local DB with simulated behaviour.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Google (Gmail + Calendar)**: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
+- **Apollo enrichment**: `APOLLO_API_KEY`
+- **Resend tracked sends**: `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Database setup
 
-## Deploy on Vercel
+Apply [supabase/migrations/0001_init.sql](supabase/migrations/0001_init.sql) once via the Supabase SQL Editor. Then:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pnpm seed
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The seed creates 5 companies, 15 contacts (realistic Indian names), 8 deals across stages, ~34 activities, and 10 tasks.
+
+## Architecture cheatsheet
+
+- `app/page.tsx` — **Flow** (home): AI-ranked Right Now, Coming Up, Actions Ready, Stats
+- `app/explore/` — Pipeline list, People list, Deal detail (with AI summary, timeline, health bars), Contact detail (with relationship summary)
+- `app/ask/` — Chat interface with tool-use over the CRM (`get_deals`, `get_activities`, `get_contact`, `get_pipeline_summary`, `search_notes`)
+- `components/command-bar/` — Always-visible top bar; routes through `POST /api/command` which runs a Claude tool-use loop to create/update entities from free text
+- `lib/anthropic/{client,prompts,ask-tools,command-tools}.ts` — All AI orchestration
+- `lib/google/{client,tokens,gmail,calendar,demo-emails}.ts` — Google integration with demo fallback
+- `lib/client-cache.ts` — sessionStorage TTL cache for slow AI fetches across navigation
+- `middleware.ts` — `MASTER_PASSWORD` Basic-auth gate (skipped on localhost)
+
+## Deploy to Vercel
+
+1. Push the repo to GitHub
+2. Create Vercel project, connect the repo
+3. Add the **REQUIRED** env vars from `.env.example` (set `NEXT_PUBLIC_APP_URL` to your `https://*.vercel.app` domain)
+4. Add optional integration vars only if you have keys — otherwise Demo Mode runs in production too
+5. **If you set Google vars:** add the production callback URL to your OAuth client:
+   ```
+   https://your-app.vercel.app/api/google/callback
+   ```
+   and re-set `GOOGLE_REDIRECT_URI` to that URL in Vercel
+6. Deploy. The `middleware.ts` gate kicks in — every request needs Basic auth (any username, password = `MASTER_PASSWORD`)
+
+## Notes
+
+- AI calls default to `claude-sonnet-4-6`. Override per-feature in `lib/anthropic/client.ts` (`MODELS.default`, `.fast`, `.best`).
+- `pnpm seed` is idempotent — it wipes the demo dataset and reinserts. Don't run on data you care about.
+- `POST /api/seed` (the in-app re-seed button) is gated by `SEED_TOKEN` if set in env.
+- Token usage is logged into `ai_conversations` for cost auditing.

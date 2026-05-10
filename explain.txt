@@ -1,0 +1,68 @@
+ailibra — AI-native CRM for B2B sales teams (built end-to-end on Next.js 14)
+================================================================================
+
+WHAT IT IS
+A CRM where AI is the interface, not a feature. Talk to it; it captures, prioritises,
+drafts, and prepares so the rep can focus on selling. Remove the AI and the product
+stops working.
+
+STACK
+Next.js 14 App Router · TypeScript strict · Tailwind + shadcn/ui · Framer Motion
+Supabase (Postgres) · Anthropic Claude (Sonnet 4.6 default) · googleapis · Resend
+date-fns-tz (IST). Single-user; cookie-auth via .env-driven email + password.
+
+ROUTES
+/login        — email + password gate. Cookie session; sign-out triggers fresh intro.
+/ask          — HOME. Multi-conversation chat, history sidebar (hidden by default,
+                toggleable, persisted). New chat opens with personalised greeting
+                pulled from /api/flow/stats. Tool-use loop runs server-side over
+                /api/ask with tools: get_deals, get_activities, get_contact,
+                get_pipeline_summary, search_notes. Markdown + tables + clickable
+                action buttons (View Deal, Draft Email, etc).
+/capture      — Virtual sales-ops assistant. Type a vague note ("Had a call with
+                Razorpay") and AI asks ONE multiple-choice question at a time using
+                ask_user tool — options pulled from real CRM data. Once enough info,
+                AI commits via find_or_create_company → contact → deal → log_activity
+                → create_task. Right sidebar shows live "Captured (24h)" feed.
+/flow         — Daily briefing. Stats row (₹ pipeline, closing, follow-ups, at-risk)
+                renders fast via /api/flow/stats. Below, AI-ranked sections from
+                /api/ai/priorities: Right Now (urgent signals), Coming Up (meetings
+                next 24h with prep brief), Actions Ready (queued tasks). Cached for
+                10 min in sessionStorage so navigation is instant.
+/explore      — Pipeline tab (deals sorted by health, at-risk first). People tab
+                (contacts grouped by company, expandable). Deal detail page has AI
+                Summary card (auto-generated, regenerable), activity timeline, all
+                contacts at company, health breakdown bars (email velocity,
+                stakeholder engagement, response time, stage duration). Stage update
+                via dropdown, Draft Follow-Up via dialog, Schedule Meeting via
+                dialog. Contact detail has AI Relationship Summary + connected deals.
+/settings     — Floating top-nav (pill, blur backdrop): Ask · Capture (with live
+                count badge) · Flow · Explore + user menu. Page itself is a 16-tile
+                integrations grid: 5 live (Anthropic, Gmail+Calendar, Apollo, Resend)
+                and 11 on the roadmap (LinkedIn, Twilio dialer, Zoom, Slack,
+                Salesforce, HubSpot, Stripe, ZoomInfo, Gong, Clay, DocuSign).
+
+DEMO MODE
+Each integration has a demo path: when the real API key is absent or OAuth is blocked,
+"Use Demo Mode" injects realistic data. Gmail demo seeds 8 inbound emails matched to
+seeded contacts. Apollo demo fills missing role/phone/linkedin. Resend demo simulates
+opens 30s after a tracked send. Calendar demo creates 3 upcoming meetings.
+
+AI ARCHITECTURE
+Every AI call uses Claude tool-use with a typed JSON schema and tool_choice forcing
+structured output. Token usage logged per call into ai_conversations table. All
+loading surfaces use a shared AIGenerating component with rotating personality copy
+("Reading the room…", "Spotting the breaks and pitches…") + shimmer + skeleton.
+
+DATA MODEL (8 tables)
+companies · contacts · deals · activities · tasks · ai_conversations · email_tracking
+· google_tokens. All UUIDs, timestamptz UTC; formatted as IST on display.
+Seed: 12 Indian B2B brands (Razorpay, Zerodha, Swiggy, CRED, Nykaa, BYJU'S, Paytm,
+Dream11, Postman, Urban Company, Meesho, Zomato), 25 contacts, 15 deals (₹15L–₹80L),
+~50 activities, 25 tasks. Run via `pnpm seed` or paste supabase/seeds/0002_*.sql.
+
+FLOW THE REP USES
+Sign in → onboarding intro (5 steps, full-screen, motion + mini demos) → land on
+Ask → ask "How's Q2 looking?" or click Capture, type "had a call with Zerodha" →
+answer 2-3 MCQ questions → CRM updated → check Flow for next priority → click into
+deal → AI summary tells the rep what to do next → Draft Follow-Up → Send tracked.
