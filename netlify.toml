@@ -1,0 +1,16 @@
+# Netlify deploy config for ailibra (Next.js 14 App Router).
+# Netlify's @netlify/plugin-nextjs auto-installs and handles SSR + API routes.
+
+[build]
+  command = "pnpm build"
+  publish = ".next"
+
+[build.environment]
+  # Pin the Node version so the build is reproducible.
+  NODE_VERSION = "20"
+  # Tell Netlify to install with pnpm (it auto-detects from pnpm-lock.yaml,
+  # but being explicit avoids surprises).
+  NPM_FLAGS = "--version"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
