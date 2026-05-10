@@ -5,6 +5,7 @@ import { saveTokenRow } from "@/lib/google/tokens";
 import { publicEnv } from "@/lib/env";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);

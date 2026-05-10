@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { saveTokenRow, disconnectGoogle, DEMO_EMAIL } from "@/lib/google/tokens";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /**
  * Sets up a demo-mode token row. Sync + send routes detect the sentinel
