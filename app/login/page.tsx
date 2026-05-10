@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Sparkles, Loader2, ArrowRight } from "lucide-react";
+import { Sparkles, Loader2, ArrowRight, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -46,7 +47,18 @@ function LoginInner() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 relative">
+      {/* Top-right: Assignment Work link */}
+      <Link
+        href="/assignmentwork"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute top-5 right-5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card hover:border-primary/40 hover:bg-primary/5 transition-all text-[12.5px] text-foreground/80 hover:text-foreground"
+      >
+        <FileText className="w-3.5 h-3.5 text-primary" strokeWidth={2.2} />
+        Assignment Work
+      </Link>
+
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}

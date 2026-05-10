@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronDown,
   Mic,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -125,31 +126,53 @@ export function TopNav() {
           })}
         </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full hover:bg-secondary transition-colors text-[13px] text-foreground/70">
-              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-semibold text-primary uppercase">
-                S
-              </div>
-              <ChevronDown className="w-3 h-3" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem asChild>
-              <Link href="/settings" className="cursor-pointer">
-                <SettingsIcon className="w-3.5 h-3.5 mr-2" /> Settings
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onSelect={logout}
-              disabled={signingOut}
-              className="cursor-pointer text-red-600 focus:text-red-600"
-            >
-              <LogOut className="w-3.5 h-3.5 mr-2" /> Sign out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-1.5">
+          <Link
+            href="/assignmentwork"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[12.5px] text-foreground/70 hover:text-foreground hover:bg-secondary transition-colors"
+          >
+            <FileText className="w-3.5 h-3.5 text-primary" strokeWidth={2.2} />
+            Assignment Work
+          </Link>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full hover:bg-secondary transition-colors text-[13px] text-foreground/70">
+                <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-semibold text-primary uppercase">
+                  S
+                </div>
+                <ChevronDown className="w-3 h-3" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem asChild className="sm:hidden">
+                <a
+                  href="/assignmentwork"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5 mr-2" /> Assignment Work
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/settings" className="cursor-pointer">
+                  <SettingsIcon className="w-3.5 h-3.5 mr-2" /> Settings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={logout}
+                disabled={signingOut}
+                className="cursor-pointer text-red-600 focus:text-red-600"
+              >
+                <LogOut className="w-3.5 h-3.5 mr-2" /> Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </nav>
     </div>
   );

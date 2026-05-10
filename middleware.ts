@@ -15,6 +15,8 @@ export function middleware(req: NextRequest) {
   // Always allow these paths through.
   const publicPath =
     path === "/login" ||
+    path === "/assignmentwork" ||
+    path === "/assignmentwork.html" ||
     path.startsWith("/api/auth/") ||
     path.startsWith("/api/google/auth") ||
     path.startsWith("/api/google/callback") ||
